@@ -10,15 +10,15 @@ var promises = slugs.map(slug => {
 
     var url = `https://www.dr.dk/mu/programcard/expanded/${slug}`;
     axios.get(url).then(response => {
-        fs.writeFileSync(`./downloads/${slug}.json`, JSON.stringify(response.data, null, 4));
-        if( !response.data.Data[0]) {
+        var dataObj = response.data.Data[0]
+        fs.writeFileSync(`./downloads/${slug}.json`, JSON.stringify(dataObj || response, null, 4));
+        if( !dataObj) {
             throw `could not download ${slug} `;
         }
-        var obj = {
-            name: response.data.Data[0].Slug,
-            urn: response.data.Data[0].Urn
+        return {
+            name: dataObj.Slug,
+            urn: dataObj.Urn
         };
-        return obj;
     }).then(data => {
         if(data) {
             var dest = `./downloads/${data.name}.mp4`;
