@@ -8,14 +8,14 @@ const slugs = require('./downloads.json').dr;
 for(var slug of slugs) {
     if(fs.existsSync(`./downloads/${slug}.mp4`)) {
         console.log(`Already downloaded ${slug}`);
-        continue
+        continue;
     }
 
-    console.log(`Downloading ${slug}`);
+    console.log(`Downloading ${slug}...`);
 
     var url = `https://www.dr.dk/mu/programcard/expanded/${slug}`;
     axios.get(url).then(response => {
-        console.log(response);
+        fs.writeFileSync(`./downloads/${slug}.json`, JSON.stringify(response.data, null, 4));
         if( !response.data.Data[0]) {
             throw `could not download ${slug} `;
         }
@@ -25,9 +25,10 @@ for(var slug of slugs) {
         };
         return obj;
     }).then(data => {
-        console.log(data);
-        var dest = `./downloads/${data.name}.mp4`;
-        drvideo(data.urn).pipe(fs.createWriteStream(dest))
+        if(data) {
+            var dest = `./downloads/${data.name}.mp4`;
+            drvideo(data.urn).pipe(fs.createWriteStream(dest))
+        }
     })
     .then(data => console.log(`Done downloading ${data.name}`))
     .catch(err => console.warn(`Cannot download ${slug} due to ${err}`));
