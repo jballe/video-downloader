@@ -5,12 +5,7 @@ const fs = require('fs'),
     ;
 
 const slugs = require('./downloads.json').dr;
-for(var slug of slugs) {
-    if(fs.existsSync(`./downloads/${slug}.mp4`)) {
-        console.log(`Already downloaded ${slug}`);
-        continue;
-    }
-
+var promises = slugs.map(slug => {
     console.log(`Downloading ${slug}...`);
 
     var url = `https://www.dr.dk/mu/programcard/expanded/${slug}`;
@@ -27,9 +22,15 @@ for(var slug of slugs) {
     }).then(data => {
         if(data) {
             var dest = `./downloads/${data.name}.mp4`;
-            drvideo(data.urn).pipe(fs.createWriteStream(dest))
+            if(fs.existsSync(dest)) {
+                console.log(`Already downloaded ${slug}`);
+            } else {
+                drvideo(data.urn).pipe(fs.createWriteStream(dest));
+            }
+            return data;
         }
     })
     .then(data => console.log(`Done downloading ${data.name}`))
     .catch(err => console.warn(`Cannot download ${slug} due to ${err}`));
-}
+});
+var p = Promise.all(promises);

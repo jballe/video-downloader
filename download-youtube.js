@@ -4,14 +4,16 @@ const
     downloads = require('./downloads.json').youtube
     ;
 
-for(var key in downloads) {
+var promises = Object.keys(downloads).map(key => {
     var url = downloads[key];
     var dest = `./downloads/${key}.mp4`;
     if(fs.existsSync(dest)) {
         console.log(`Already downloaded ${key}`);
-        continue;
+        return;
     }
     console.log(`Downloading ${key}...`)
-    ytdl(url, { filter: (format) => format.container === 'mp4' })
+    
+    return ytdl(url, { filter: (format) => format.container === 'mp4' })
         .pipe(fs.createWriteStream(dest));
-}
+});
+Promise.all(promises);
